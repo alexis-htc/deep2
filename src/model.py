@@ -8,18 +8,46 @@ class MyModel(nn.Module):
 
         super().__init__()
 
-        # YOUR CODE HERE
-        # Define a CNN architecture. Remember to use the variable num_classes
-        # to size appropriately the output of your classifier, and if you use
-        # the Dropout layer, use the variable "dropout" to indicate how much
-        # to use (like nn.Dropout(p=dropout))
-        
+        self.features = nn.Sequential(
+            # Block 1: 3x224x224 -> 32x112x112
+            nn.Conv2d(3, 32, kernel_size=3, padding=1),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2),
+            # Block 2: 32x112x112 -> 64x56x56
+            nn.Conv2d(32, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2),
+            # Block 3: 64x56x56 -> 128x28x28
+            nn.Conv2d(64, 128, kernel_size=3, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2),
+            # Block 4: 128x28x28 -> 256x14x14
+            nn.Conv2d(128, 256, kernel_size=3, padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2),
+            # Block 5: 256x14x14 -> 512x7x7
+            nn.Conv2d(256, 512, kernel_size=3, padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2),
+        )
+        self.pool = nn.AdaptiveAvgPool2d((1, 1))
+        self.classifier = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(512, 256),
+            nn.ReLU(),
+            nn.Dropout(p=dropout),
+            nn.Linear(256, num_classes),
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # YOUR CODE HERE: process the input tensor through the
-        # feature extractor, the pooling and the final linear
-        # layers (if appropriate for the architecture chosen)
-        
+        x = self.features(x)
+        x = self.pool(x)
+        x = self.classifier(x)
         return x
 
 
